@@ -1,9 +1,430 @@
-<html>
-  <head>
-    <title>Hello world</title>
-  </head>
-  <body>
-    <h1>Hello world</h1>
-    <p>This is my world</p>
-  </body>
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Random Conversation Starters</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#60a5fa;--muted:#94a3b8}
+    html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial}
+    body{display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#071025 0%, #07172a 100%);color:#e6eef8}
+    .card{width:min(900px,92vw);background:linear-gradient(180deg,rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:28px;box-shadow:0 10px 30px rgba(2,6,23,0.6);backdrop-filter:blur(6px)}
+    h1{margin:0 0 6px 0;font-size:20px}
+    p.lead{margin:0 0 18px 0;color:var(--muted)}
+    .question-box{min-height:140px;display:flex;align-items:center;justify-content:center;border-radius:10px;padding:22px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));font-size:22px;text-align:center;line-height:1.3}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    button{background:transparent;border:1px solid rgba(255,255,255,0.08);padding:10px 14px;border-radius:10px;color:inherit;cursor:pointer;font-weight:600}
+    button.primary{background:linear-gradient(90deg,var(--accent),#3b82f6);border:none;color:#081226}
+    button.ghost{background:transparent}
+    .small{padding:8px 10px;font-size:14px}
+    .meta{margin-top:12px;color:var(--muted);font-size:13px;display:flex;gap:14px;align-items:center}
+    .count{background:rgba(255,255,255,0.02);padding:6px 10px;border-radius:999px}
+    .fade{transition:transform .28s cubic-bezier(.2,.9,.3,1), opacity .22s ease}
+    .big{font-size:26px}
+    .seed{opacity:0.4;font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="card" role="main">
+    <h1>Random conversation starters</h1>
+    <p class="lead">Druk op <strong>Nieuwe vraag</strong> om een willekeurige gesprekstarter te tonen. Je hoeft er niet op te antwoorden — gebruik ze om gesprekken op gang te brengen.</p>
+
+    <div id="question" class="question-box big fade">Druk op "Nieuwe vraag" om te beginnen ✨</div>
+
+    <div class="controls">
+      <button id="newBtn" class="primary">Nieuwe vraag</button>
+      <button id="copyBtn" class="small">Kopieer vraag</button>
+      <button id="skipBtn" class="small">Sla over</button>
+      <button id="resetBtn" class="small ghost">Reset</button>
+      <button id="addBtn" class="small ghost">+ Voeg toe</button>
+    </div>
+
+    <div class="meta">
+      <div class="count">Overgebleven: <span id="remaining">—</span></div>
+      <div class="count">Totaal: <span id="total">—</span></div>
+      <div style="margin-left:auto" class="seed">Random seed: <span id="seed">—</span></div>
+    </div>
+
+    <div id="addArea" style="display:none;margin-top:12px">
+      <input id="newQuestionInput" type="text" placeholder="Typ een nieuwe vraag en druk op Enter" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit">
+    </div>
+  </div>
+
+  <script>
+    // Vaste set gesprekstarters (Nederlands)
+    const QUESTIONS = [
+"Wat vind je van ons leven op dit moment?",
+"Hoe hoop je dat ons leven er over 10 jaar uit ziet?",
+"Welke eigenschappen aan mij kun je minder waarderen?",
+"Heb je het gevoel dat ik je accepteer zoals je bent? Waarom wel/niet?",
+"Wanneer ben jij op je best?",
+"Wanneer ben je op je slechtst?",
+"Wat is voor jou het beste moment in onze relatie tot nu toe?",
+"Wat zou je mij nooit kunnen vergeven?",
+"Wat vind jij belangrijker? Seksuele chemie of bij elkaar passen?",
+"Wat vind je het meest romantische moment uit onze relatie tot nu toe?",
+"Wat zou je graag nog eens samen willen doen?",
+"Flirt je wel eens met anderen als ik er niet bij ben?",
+"Wat zijn de moeilijkste onderwerpen om met mij te delen?",
+"Bij welke muziek moet je aan mij denken?",
+"Wanneer voel je je het meest geliefd door mij?",
+"Hoe vind je dat wij de taken in huis verdeeld hebben?",
+"Wat vind je mijn beste eigenschap?",
+"In welke kleding zie je mij het liefst?",
+"Welk kledingstuk van mij vindt je minder leuk?",
+"Wat zou onze relatie kapot kunnen maken?",
+"Zijn er nog geheimen uit het verleden die je met me willen delen?",
+"Hoe voel je je als anderen belangstelling voor mij hebben?",
+"Wanneer was je voor het laatst boos op mij?",
+"Wat hebben wij het meest gemeen?",
+"Op welke vlakken verschillen wij?",
+"Wat zou je mij nooit kunnen vergeven?",
+"Wat zou je willen dat ik verander?",
+"Heb jij ooit iets veranderd voor mij?",
+"Wanneer dacht je voor het laatst: wat is ze/hij toch leuk of wat hou ik van haar/hem?",
+"Hoe denk je dat ik ben als ik ouder ben dan 65?",
+"Wat vind je van onze conflicten?",
+"Wat is de meest speciale herinnering die je hebt over ons?",
+"Heb je er ooit over nagedacht om bij me weg te gaan?",
+"Beschrijf onze perfecte dag samen eens?",
+"Als je iets aan jezelf zou kunnen veranderen wat onze relatie ten goede zou kunnen komen, wat is dat dan?",
+"Als ik nu komt te overlijden, wat zou je dan jammer vinden dat je me niet hebt kunnen zeggen?",
+"Waar ben je het meest dankbaar voor in onze relatie?",
+"Welk land(en) wil je samen met mij nog bezoeken en waarom?",
+"Hoe kan ik jou nog gelukkiger maken?",
+"Wanneer vind je mij het meest aantrekkelijk?",
+"Wanneer vind je mij onaantrekkelijk?",
+"Door welke dingen die ik zeg of doe voel jij je geliefd?",
+"Door welke dingen die ik zeg of doe voel jij je niet geliefd?",
+"Wat was het eerste wat jou in mij aantrok?",
+"Geef ik je genoeg complimenten?",
+"Hoe of wanneer laat ik je speciaal voelen?",
+"Denk je wel eens aan een bepaald intiem moment waarover je me nog niet hebt verteld?",
+"Wat maakt jou het meest bang als het om onze relatie gaat?",
+"Wat vind je het meest plezierig aan onze relatie?",
+"Is er iets waarover je voelt dat ik niet helemaal eerlijk of open ben geweest tegen jou?",
+"Als je één deel van je lichaam kon veranderen, wat zou het zijn?",
+"Wat is het meest pijnlijke dat ik ooit heb gezegd of gedaan in onze relatie?",
+"Wat is jouw favoriete deel van mijn lichaam?",
+"Toen we elkaar ontmoetten, hoe lang dacht je toen dat we bij elkaar zouden blijven? En wat denk je nu?",
+"Wat draag ik bij aan jouw leven?",
+"Wat denk je dat mij als eerste aantrok in jou?",
+"Welke gedachten heb je als je mij ziet praten met een aantrekkelijk persoon?",
+"Heb je je weleens zorgen gemaakt over dat ik vreemd zou gaan?",
+"Heb je er weleens over gedacht om vreemd te gaan?",
+"Wanneer bewonder je mij het meest?",
+"Ben je tevreden met hoe ik over jou denk?",
+"Denk je dat we teveel of juist te weinig tijd met elkaar doorbrengen?",
+"Voelt onze relatie nu anders dan in het begin — en hoe zou jij de ‘vonk’ vandaag omschrijven?",
+"Wat is je grootste angst?",
+"Wanneer kom jij helemaal tot bloei?",
+"Hoe ziet je droomvakantie eruit?",
+"Denk je dat we dezelfde, gedeelde visie voor de toekomst hebben?",
+"Aan welk moment samen — een date, weekend of activiteit — heb jij de mooiste herinneringen?",
+"Wat van de dingen die we vaak samen doen, geeft jou het meeste plezier?",
+"Wat is iets wat je altijd al hebt verlangd om eens in de slaapkamer te beleven?",
+"Heb je iets nieuws over jezelf geleerd sinds wij zijn een relatie hebben?",
+"Wat was jouw eerste impressie van mij, en ben je het daar nog mee eens?",
+"Op welk vlak denk je dat we het meest compatibel zijn?",
+"Is er iets aan mij wat je verbaasde naarmate je me beter leerde kennen?",
+"Wat doe ik waar jij altijd opgewonden van raakt?",
+"Wat is iets waar je heel trots op bent?",
+"Als je je niet druk hoefde te maken over werk en financiën, hoe zou je dan je tijd doorbrengen?",
+"Wat was de meest zware beslissing die je hebt moeten nemen?",
+"Wat is jouw love language?",
+"Wat was je favoriete ding dat we het afgelopen jaar hebben gedaan?",
+"Zijn er gewoontes waarvan je het goed vindt dat we ze ontwikkeld hebben?",
+"Zijn er slechte gewoontes (van ons samen) waar je graag vanaf wil?",
+"In welke situaties voel je je door mij geliefd?",
+"Wat beteken ik voor jou?",
+"Waar ga je het liefst met mij naartoe?",
+"Hoe voel je je als we lang niet samen zijn?",
+"Ben je tevreden met je leven op dit moment?",
+"Hoe verrijk ik jouw leven?",
+"Wanneer voel je je energiek?",
+"Wat vind je het leukst om samen met mij te doen?",
+"Is er een vraag die je mij zou willen stellen maar wat je nog niet hebt gedaan omdat je bang bent voor het antwoord?",
+"In welke situaties voel je je door mij minder geliefd?",
+"Raak ik je voldoende aan?",
+"Wat maakt jou gelukkig in onze relatie?",
+"Welk contrast tussen ons vind je leuk?",
+"Welk contrast tussen ons vind je minder leuk?",
+"Als onze relatie nu zou eindigen, wat zou je dan het meest missen?",
+"Waarom ben je op mij gevallen?",
+"Wat zou je heel graag met mij willen doen?",
+"Wat staat op onze foto’s het komende jaar?",
+"Wat heeft je het meest pijn gedaan in onze relatie?",
+"Wat voor soort gedrag zou je nooit accepteren of tolereren?",
+"Wat was voor jou het beste of mooiste moment in onze relatie?",
+"Hoe ben je veranderd de afgelopen 5 jaar?",
+"Wat voor complimenten krijg je graag van mij?",
+"Wat kan ik doen om je nog meer geliefd te laten voelen door mij?",
+"Vertel iets aan je partner wat hij/zij nog niet weet?",
+"Hoeveel bedpartners heb je gehad naast je partner? Fantaseer je daar nog wel eens over?",
+"Op wie ben je wel eens jaloers geweest en waarom?",
+"Op welke momenten mis je jouw partner wel eens?",
+"Als geld geen rol speelt, wat zou je dan aan je partner willen geven?",
+"Wat is jouw partners favoriete tijdstip van de dag om de liefde te bedrijven?",
+"Wat vindt jouw partner heel erg vies?",
+"Wat was voor jou de beste dag van het afgelopen jaar en waarom?",
+"Waneer was je echt trots op je partner?",
+"Wat herinner je nog van jullie eerste keer? Denk je daar nog wel eens aan?",
+"Wat herinner je nog van jullie eerste ontmoeting?",
+"Als jij je partner niet was tegen gekomen, hoe zou je leven er dan nu uitzien?",
+"Wanneer schaamde jij je voor je partner?",
+"Heb je ooit gefantaseerd over iemand anders dan je partner?",
+"Zijn er onderwerpen waar jullie moeilijk of niet over praten?",
+"Wat voor een cijfer geef je onze relatie? Ben je daar blij mee?",
+"Wat is het mooiste cadeau dat je partner jou ooit heeft gegeven?",
+"Wat voor een cijfer geef je jullie seksleven op dit moment en waarom?",
+"Je mag één cosmetische ingreep laten doen, wat zou je kiezen?",
+"Wat zou je over jouw partner zeggen op zijn/haar begrafenis?",
+"Wat kan je partner doen om jou op te vrolijken als je in een sombere bui bent?",
+"Welke kans in je leven heb je gemist en zou je graag opnieuw voorbij willen laten komen?",
+"Welke fantasie over seks heb je wel eens (gehad)? Zou je daar wat mee willen?",
+"Welke eigenschappen van je partner maken jou verliefd?",
+"Wat kan ik doen, zodat jij (meer) zin hebt in seks?",
+"Wat is het meest romantische dat ik ooit voor je heb gedaan?",
+"Hoe belangrijk is fysieke aanraking voor jou in de relatie?",
+"Welke vrijpartij met mij staat je nog goed bij?",
+"Wanneer vindt je mij echt sexy?",
+"Welke seksuele handeling hebben we nog nooit gedaan? Waarom niet?",
+"Heb je wel eens gedacht aan partnerruil?",
+"Wat zou ik nog vaker mogen doen in bed?",
+"Welke lichaamsdelen van mij zijn het gevoeligst?",
+"Heb je wel eens gedroomd over seks met een ander? Wat voor een droom was dat?",
+"Wie is de meest dominante in ons liefdesspel?",
+"Zouden je wel eens een rollen spel willen proberen? Welke rol spreekt je dan aan?",
+"Wat is je favoriete herinnering van een intiem moment samen?",
+"Waar zou je wel eens mee willen experimenteren?",
+"Beschijf hoe ik ruik.",
+"Is er iets dat ik op seksueel gebied niet van je weet?",
+"Wat is mijn favoriete plek om gezoend te worden?",
+"Als jij de dag en het tijdstip van je dood zou kunnen weten, zou je dat dan willen weten? Waarom wel/niet?",
+"Kus je liever of knuffel je liever?",
+"Wie moet de eerste move maken? Jij of ik?",
+"Lichten aan of lichten uit tijdens de seks?",
+"Liever alle controle of gestuurd worden tijdens de seks?",
+"Wat was je laatste erotische fantasie of droom?",
+"Wat is jouw 'naughty guilty pleasure'?",
+"Wat is het meest ondeugende/stoute dat jij ooit gedaan hebt?",
+"Wat maakt iemand écht sexy voor jou?",
+"Op welke plek raak jij mij het liefste aan?",
+"Vind je het fijn als je partner dominant is in bed?",
+"Kijk je wel eens stiekem porno zonder je partner?",
+"Als je morgen wakker zou worden met één nieuwe kwaliteit of mogelijkheid, welke zou je dan kiezen?",
+"Als een kristallen bol je de waarheid over jezelf, je leven, de toekomst of iets anders zou laten zien, wat zou je dan willen weten?",
+"Is er iets waarvan je al heel lang droomt? En waarom heb je het nog niet gedaan?",
+"Deel het meest beschamendste moment in je leven.",
+"Welke seksuele handeling staat op je “eens maar nooit meer” lijstje?",
+"Als je wakker zou worden in een lichaam van het andere geslacht, wat zou je dan als eerste doen?",
+"Ben je ooit eens betrapt tijdens de seks?",
+"Als je onze relatie in één woord zou moeten beschrijven, welk woord zou dit dan zijn?",
+"Als onze relatie nu zou eindigen, wat zou je dan het meest missen?",
+"Waarom ben je op mij gevallen?",
+"Kijk elkaar 3 minuten in de ogen zonder iets te zeggen.",
+"Wat denk je dat je partner belangrijk vindt in jullie seksuele relatie?",
+"Welke superkracht zou je graag willen hebben?",
+"Wat zou je doen als je plotseling miljonair zou zijn?",
+"Wie heeft er een grotere kans om de Hunger Games te overleven: jij of ik?",
+"In welke tijd zou jij geboren willen zijn (bijv. de middeleeuwen)?",
+"Zou je liever een vampier of een weerwolf zijn?",
+"Wie van ons heeft een beter richtingsgevoel: jij of ik?",
+"Als ik een dier zou zijn, welk dier zou ik dan zijn?",
+"Wie zou je in een volgend leven willen zijn?",
+"Liever altijd zomer of altijd winter?",
+"Wat was het eerste wat je aan mij opviel toen je mij voor het eerst zag?",
+"Wil je liever geliefd zijn, gerespecteerd of bewonderd worden?",
+"Wat is jouw definitie van romantiek?",
+"Wanneer wilde je mij voor het eerst zoenen?",
+"Is er iets wat je nooit was gaan doen als ik niet in je leven was geweest?",
+"Vind je dat wij vaak genoeg lachen?",
+"Wat is het meest romantische moment dat we ooit samen hebben meegemaakt?",
+"Hoe verberg jij emoties als je ze niet wil laten zien?",
+"Is je leven wat je hoopte dat het zou worden toen je nog een kind was?",
+"Geloof je dat alles met een reden gebeurt?",
+"Geloof je in een leven na de dood?",
+"Zou je eeuwig willen leven als dat zou kunnen?",
+"Wat heb je altijd al van mij willen weten?",
+"Hoe vaak ben jij verliefd geweest en op wie?",
+"Geloof je in een “leugentje om bestwil”? En waarom wel/niet?",
+"Wie is er beter in de ander vertrouwen: jij of ik?",
+"Waar voel je je het meest onzeker over?",
+"Voel je je 100% op je gemak mij bij?",
+"Zeg ik vaak genoeg ‘Ik hou van je’ tegen jou?",
+"Denk je dat wij voor altijd samenblijven?",
+"Vind je dat we genoeg diepgaande gesprekken voeren?",
+"Heb je wel eens een orgasme gefaket bij mij?",
+"Hoe zou jij ‘goede seks’ omschrijven?",
+"Heb je wel eens gemasturbeerd terwijl je aan mij dacht?",
+"In welke kleding vind je mij het meest sexy?",
+"Wat vind je van seksspeeltjes? Zou je dit als koppel willen gebruiken?",
+"Waar wil je vaker aangeraakt worden?",
+"Wat is het meest attente dat ik ooit voor je heb gedaan?",
+"Wat is jouw liefdestaal?",
+"Wat is een romantische fantasie die je nog nooit hebt gedeeld?",
+"Wat is je favoriete koosnaampje voor mij?",
+"Wat is één ding dat je samen met mij wilt ervaren?",
+"Wat is het meest betekenisvolle cadeau dat ik je heb gegeven?",
+"Wat is een romantische activiteit die we nog nooit hebben geprobeerd?",
+"Wat is een romantische traditie die je zou willen starten?",
+"Wat is een herinnering uit de tijd dat je je partner leerde kennen die je nooit zult vergeten?",
+"Wat is het wildste dat je ooit in bed hebt uitgespookt? (met of zonder je partner)",
+"Waar word je opgewonden van dat je me nog nooit hebt verteld?",
+"Welke stomende filmscène zet jou meteen in vuur en vlam?",
+"Wat is een sexy berichtje dat je hebt overwogen mij te sturen?",
+"Hoe ziet jouw perfecte avond met omgedraaide rollen eruit?",
+"Welke sexy outfit zou je mij graag zien dragen?",
+"Welke fetisj zou je graag willen verkennen?",
+"Welke sensuele skill zou je samen willen leren?",
+"Wat is jouw favoriete soort dirty talk?",
+"Wat is een sexy opdracht die je me nu zou willen geven?",
+"Wat is de ultieme turn-on die je nog nooit hebt onthuld?",
+"Welke grens zou je in de slaapkamer willen verleggen?",
+"Wat is het eerste dat je zou kopen als je de loterij won?",
+"Als je één ding in je leven kon veranderen, wat zou dat zijn?",
+"Naar welk tijdperk zou je reizen als tijdreizen mogelijk was?",
+"Welke drie mensen, levend of dood, zou je uitnodigen voor een diner?",
+"Wat zou je tegen je jongere zelf zeggen als je kon?",
+"Hoe kom je het liefst tot rust na een lange dag?",
+"Welk avontuur of welke uitdaging zou je graag willen aangaan?",
+"Wat is je grootste prestatie tot nu toe?",
+"Wat is het beste advies dat je ooit hebt gekregen?",
+"Wanneer voelde je je echt gelukkig?",
+"Wat is het meest gênante dat je hebt gedaan terwijl je dronken was?",
+"Heb je ooit een onenightstand gehad?",
+"Ben je ooit verliefd geweest op een leraar of professor?",
+"Wat is jouw meest ongewone turn-on?",
+"Heb je ooit gefantaseerd over een beroemdheid?",
+"Wat is het meest verboden verlangen dat je hebt gehad?",
+"Ben je ooit verliefd geweest op iemand die al bezet was?",
+"Heb je ooit gelogen over je seksuele geschiedenis tegen je partner?",
+"Wat is het wildste dat je hebt gedaan onder invloed?",
+"Heb je ooit een crush gehad op een getrouwd persoon?",
+"Wat is de meest roekeloze beslissing die je impulsief hebt genomen?",
+"Wat is de meest intense angst die je recht in de ogen hebt gekeken?",
+"Heb je ooit een crush gehad op een veel ouder of jongere persoon?",
+"Heb je ooit iets gedaan waar je zo veel spijt van had dat je het zou willen wissen?",
+"Hoe denk je dat anderen jou zien en hoe wil je gezien worden?",
+"Wie heeft jouw leven in grote mate beïnvloed en hoe?",
+"Als je vandaag zou sterven, waarvan zou je dan spijt hebben?",
+"Wat betekent vergeving voor jou en heb je ooit moeten vergeven?",
+"Heb je angsten over onze gezamenlijke toekomst?",
+"Hoe voel je je als we ruzie hebben?",
+"Is er iets dat je me nog nooit hebt verteld?",
+"Wat betekent emotionele intimiteit voor jou?",
+"Heb je dromen die je vanwege onze relatie hebt moeten opgeven?",
+"Denk je dat iedereen een fetisj heeft?",
+"Gaan liefde en seks voor jou samen en waarom?",
+"Heb je erotische fantasieën die je tot nu toe niet hebt durven delen?",
+"Welke aanrakingen zijn voor jou ontspannend en welke juist opwindend?",
+"Heb je liever snelle seks of lange seks?",
+"Wat is één ding dat ik doe waardoor je je diep geliefd voelt?",
+"Hoe denk je dat we de passie in onze relatie levendig kunnen houden?",
+"Hoe kunnen we beter communiceren over onze wensen en grenzen in de slaapkamer?",
+"Hoe belangrijk is fysieke aantrekkingskracht in onze relatie, en hoe behouden we dat?",
+"Wat is één ding dat ik doe waardoor je je het meest verbonden voelt met mij op seksueel gebied?",
+"Wat zijn enkele van je favoriete herinneringen aan onze intieme momenten?"
+    ];
+
+    // Kopieer array zodat we origineel behouden
+    let pool = [...QUESTIONS];
+    const totalEl = document.getElementById('total');
+    const remainingEl = document.getElementById('remaining');
+    const questionEl = document.getElementById('question');
+    const seedEl = document.getElementById('seed');
+
+    function setCounts(){
+      totalEl.textContent = QUESTIONS.length;
+      remainingEl.textContent = pool.length;
+    }
+
+    // eenvoudige seeded random (xorshift)
+    let seed = Math.floor(Math.random()*2**31);
+    function xorshift(){
+      seed ^= seed << 13;
+      seed ^= seed >>> 17;
+      seed ^= seed << 5;
+      return Math.abs(seed) / 0x7fffffff;
+    }
+
+    function pickRandom(){
+      if(pool.length === 0) return null;
+      const i = Math.floor(xorshift() * pool.length);
+      const q = pool.splice(i,1)[0];
+      return q;
+    }
+
+    function showQuestion(q){
+      if(!q) {
+        questionEl.textContent = 'Geen vragen meer — druk op Reset om opnieuw te beginnen.';
+        questionEl.classList.remove('big');
+        return;
+      }
+      // animatie
+      questionEl.style.opacity = 0; questionEl.style.transform = 'translateY(8px)';
+      setTimeout(()=>{
+        questionEl.textContent = q;
+        questionEl.style.opacity = 1; questionEl.style.transform = 'translateY(0)';
+        questionEl.classList.add('big');
+      }, 160);
+      setCounts();
+    }
+
+    document.getElementById('newBtn').addEventListener('click', ()=>{
+      const q = pickRandom();
+      showQuestion(q);
+    });
+
+    document.getElementById('skipBtn').addEventListener('click', ()=>{
+      // verbruik een vraag zonder tonen
+      if(pool.length===0){ showQuestion(null); return; }
+      pool.splice(Math.floor(xorshift()*pool.length),1);
+      setCounts();
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      pool = [...QUESTIONS];
+      seed = Math.floor(Math.random()*2**31);
+      seedEl.textContent = seed;
+      setCounts();
+      questionEl.textContent = 'Reset gedaan — druk op "Nieuwe vraag" om te starten ✨';
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', async ()=>{
+      const text = questionEl.textContent;
+      try{
+        await navigator.clipboard.writeText(text);
+        const old = document.getElementById('copyBtn').textContent;
+        document.getElementById('copyBtn').textContent = 'Gekopieerd ✓';
+        setTimeout(()=> document.getElementById('copyBtn').textContent = old, 1200);
+      }catch(e){
+        alert('Kopieer mislukt — selecteer handmatig en kopieer.');
+      }
+    });
+
+    // Voeg nieuwe vraag toe
+    document.getElementById('addBtn').addEventListener('click', ()=>{
+      const area = document.getElementById('addArea');
+      area.style.display = area.style.display === 'none' ? 'block' : 'none';
+      document.getElementById('newQuestionInput').focus();
+    });
+
+    document.getElementById('newQuestionInput').addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        const v = e.target.value.trim();
+        if(!v){ e.target.value = ''; return; }
+        QUESTIONS.push(v);
+        pool.push(v);
+        setCounts();
+        e.target.value = '';
+        document.getElementById('addArea').style.display = 'none';
+      }
+    });
+
+    // initialisatie
+    seedEl.textContent = seed;
+    setCounts();
+  </script>
+</body>
 </html>
